@@ -1,0 +1,10 @@
+---
+# elio - Default Docker Network
+- name: "create a new docker network"
+  become_user: "{{ ansible_user }}"
+  community.docker.docker_network:
+    name: "elio-network"
+    state: present
+    timeout: 60
+  tags:
+    - install-network

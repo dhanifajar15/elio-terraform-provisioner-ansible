@@ -1,0 +1,172 @@
+---
+# elio - Default configurations
+- name: "replace sshd_config for pass & pubkey auth"
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '{{ item.From }}'
+    line: '{{ item.To }}'
+  with_items:
+    - { From: 'PasswordAuthentication no', To: '{{ pass_auth }}'}
+    - { From: 'PubkeyAuthentication no', To: '{{ pubkey_auth }}'}
+  tags:
+    - install-commons
+
+- name: "restart sshd service"
+  systemd:
+    state: restarted
+    name: sshd
+  tags:
+    - install-commons
+
+# elio - Update & upgrade systems
+- name: "update and upgrade systems"
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+  tags:
+    - install-commons
+
+# elio - Install recommended apps
+- name: "install systems dependencies"
+  apt:
+    name:
+      - apt-transport-https
+      - gnupg
+      - gnupg-agent
+      - ca-certificates
+      - openssl
+      - curl
+      - software-properties-common
+      - build-essential
+      - net-tools
+      - htop
+      - ncdu
+      - vim
+      - nano
+      - ufw
+      - git
+      - zip
+      - unzip
+      - rsync
+      - sshpass
+      - whois
+      - snapd
+      - debian-keyring 
+      - debian-archive-keyring
+      - jq
+      - libnss3-tools
+      - nginx
+    state: present
+  tags:
+    - install-commons
+
+# elio - Install Certbot
+- name: "install certbot"
+  snap:
+    name: certbot
+    classic: yes
+  tags:
+    - install-commons
+
+- name: "Create a symbolic link certbot"
+  ansible.builtin.file:
+    src: /snap/bin/certbot
+    dest: /usr/bin/certbot
+    state: link
+  tags:
+  - install-commons
+
+# elio - Install Caddy
+# - name: "add caddy apt key"
+#   apt_key:
+#     url: "{{ caddy_apt_gpg_key }}"
+#     id: 65760C51EDEA2017CEA2CA15155B6D79CA56EA34
+#     state: present
+#   register: add_repository_key
+#   ignore_errors: "{{ caddy_apt_ignore_key_error }}"
+#   tags:
+#     - install-commons
+
+# - name: "add caddy repository"
+#   apt_repository:
+#     repo: "{{ caddy_apt_repository }}"
+#     state: present
+#     update_cache: true
+#   tags:
+#     - install-commons
+
+# - name: "install caddy"
+#   apt: name={{ item }} update_cache=false
+#   loop:
+#     - caddy
+#   tags:
+#     - install-commons
+
+# elio - Docker Install
+- name: "add gpg docker"
+  apt_key:
+    url: "{{ docker_apt_gpg_key }}"
+    state: present
+  tags:
+    - install-commons
+
+- name: "add docker repository"
+  apt_repository:
+    repo: "{{ docker_apt_repository }}"
+    state: present
+    update_cache: true
+  tags:
+    - install-commons
+
+- name: "install docker"
+  apt: name={{ item }} update_cache=false
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+  tags:
+    - install-commons
+
+# elio - Installs Docker SDK
+- name: "install python package manager"
+  apt:
+    name: python3-pip
+  tags:
+    - install-commons
+
+- name: "install python sdk"
+  become_user: "{{ ansible_user }}"
+  pip:
+    name:
+      - docker
+      - docker-compose
+  tags:
+    - install-commons
+
+- name: "add user permissions"
+  shell: "usermod -aG docker {{ ansible_user }}"
+  tags:
+    - install-commons
+
+- name: "start systemd docker"
+  systemd:
+    state: started
+    name: docker
+    enabled: true
+  tags:
+    - install-commons
+
+# elio - Firewall
+- name: "allow port 22,80,443"
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+    state: enabled
+  loop:
+    - 22
+    - 80
+    - 443
+  tags:
+    - install-commons

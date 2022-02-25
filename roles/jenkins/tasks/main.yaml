@@ -1,0 +1,25 @@
+# elio - Jenkins Install
+- name: "install jenkins"
+  become_user: "{{ ansible_user }}"
+  community.docker.docker_container:
+    name: "{{ jenkins_docker_name }}"
+    image: "{{ jenkins_docker_iamge}}:{{ jenkins_docker_tag}}"
+    ports:
+      - "{{ jenkins_docker_ui_ports }}:8080"
+      - "{{ jenkins_docker_slave_ports}}:50000"
+    volumes:
+      - "/home/{{ ansible_user }}/{{ jenkins_docker_name }}-data:/var/jenkins_home"
+    restart_policy: always
+    networks:
+      - name: elio-network
+  tags:
+      - install-jenkins
+
+# elio - Jenkins Uninstall
+- name: "Uninstall Jenkins"
+  become_user: "{{ ansible_user }}"
+  community.docker.docker_container:
+    name: "{{ jenkins_docker_name }}"
+    state: absent
+  tags: 
+      - uninstall-jenkins
