@@ -5,31 +5,30 @@
 # If you using debian ( Download x.deb ), Otherwise download Binary file an place in executable path in system.
 
 # Installation ( Debian )
-$ sudo dpkg -i ./vagrant-x.deb
+curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt-get update && sudo apt-get install vagrant
+
 
 # Install VM ( Ubuntu 18.04 )
-$ vagrant init 
+vagrant init 
 
 # Tweak a Vagrant Little 
-# Open Vagrantfile
-$ nano ./Vagrantfile
----
+cat <<EOF > Vagrantfile
+
 Vagrant.configure("2") do |config|
   config.ssh.insert_key = false
   config.vm.define "ubuntu" do |ubuntu|
-    ubuntu.vm.box = "ubuntu/bionic64"
+    ubuntu.vm.box = "ubuntu/focal64"
   end
   config.vm.network "public_network"
 end
----
+EOF
 
-$ vagrant up
+vagrant up --provider virtualbox
 
 # Check Status
-$ vagrant status
-Current machine states:
-
-ubuntu                    running (virtualbox)
+vagrant status
 
 # SSH To VM ( Without any hussle )
-$ vagrant ssh
+vagrant ssh

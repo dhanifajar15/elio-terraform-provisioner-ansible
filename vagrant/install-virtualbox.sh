@@ -4,7 +4,7 @@
 sudo apt-get -y install gcc make linux-headers-$(uname -r) dkms
 
 # Install Virtual Box
-sudo apt install ./virtualbox-5.2_5.2.44-139111_Ubuntu_bionic_amd64.deb -y
+sudo apt install virtualbox
 
 # To Check
 VBoxManage -v
